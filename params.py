@@ -1,66 +1,160 @@
-config_file = 'C:\\ti\mmwave_studio_02_01_01_00\mmWaveStudio\Scripts\DataCaptureDemo_PythonPrepare.lua'
+"""
+
+MMWAVE DCA1000 PARAMETERS
+=========================
+
+Import PARAMS object to get access to all variables.
+Call PARAMS.set_playback_mode(config) to use custom config dictionary (when reading saved data).
+
+"""
 
 
-def parse_config():
-    d = {}
+class __PARAMS_CLASS():
+    '''
+    Parameter parsing class.
+    This class should not be used.
+    Import PARAMS object instead.
+    '''
 
-    # Read file and update dict
-    with open(config_file, 'r') as f:
-        for i in range(40):
-            line = f.readline()
-            if not (line.startswith('-') or line.startswith('\n')):
-                elems = line[:-1].split(' = ')
-                param = elems[0]
+    RECORD_MODE = 1
+    PLAYBACK_MODE = 2
+    CONFIG_FILE = 'C:\\ti\mmwave_studio_02_01_01_00\mmWaveStudio\Scripts\DataCaptureDemo_PythonPrepare.lua'
 
-                if param == 'FREQ_SLOPE':
-                    d.update({elems[0]: float(elems[1].split(' -')[0])})
-                elif param != 'NUM_TX' and param != 'END_CHIRP_TX':
-                    d.update({elems[0]: int(elems[1].split(' -')[0])})
+    c = 3e8  # 299792458  # m/s
 
-    # Compute remaining parameters
-    d['NUM_TX'] = d['TX0_EN'] + d['TX1_EN'] + d['TX2_EN']
-    d['END_CHIRP_TX'] = d['NUM_TX'] - 1
+    def __init__(self):
+        # Setting record mode by default
+        self.set_record_mode()
 
-    return d
+    def parse_config(self):
+        # ------------------------------
+        # Params from config file
+
+        self.TX_ANTENNAS = self.CONFIG['NUM_TX']
+        self.RX_ANTENNAS = self.CONFIG['NUM_RX']
+
+        self.fc = self.CONFIG['START_FREQ']*1e9  # chirp start frequency, Hz
+        self.Tc = self.CONFIG['IDLE_TIME']*1e-6  # s
+        self.Tr = self.CONFIG['RAMP_END_TIME']*1e-6  # s
+        self.ADC_START_TIME = self.CONFIG['ADC_START_TIME']*1e-6  # s
+        self.k = self.CONFIG['FREQ_SLOPE']*1e6/1e-6  # Hz/s
+        self.ADC_SAMPLES = self.CONFIG['ADC_SAMPLES']
+        self.FS = self.CONFIG['SAMPLE_RATE']  # ksps
+        self.RX_GAIN = self.CONFIG['RX_GAIN']  # dB
+
+        self.CHIRP_LOOPS = self.CONFIG['CHIRP_LOOPS']
+        self.Tperiodicity = self.CONFIG['PERIODICITY']  # ms
+
+        self.fs = self.FS*1e3  # Hz
+        self.lmbda = self.c/self.fc  # wavelength, m
+        self.Tchirp = self.Tc + self.Tr  # total chirp duration, s
+        self.MIN_PERIODICITY = self.Tchirp*self.CHIRP_LOOPS*self.TX_ANTENNAS*1000  # ms
+        self.CHIRPS_PER_FRAME = self.CHIRP_LOOPS*self.TX_ANTENNAS
+
+        # ------------------------------
+        # RANGE FFT PARAMETERS CALCULATION
+
+        self.NUM_RANGE_BINS = self.ADC_SAMPLES
+
+        # Para calcular B usamos el tiempo total de sampleo
+        self.Ts = self.ADC_SAMPLES/self.fs  # sampling time, s
+        self.B = self.k*self.Ts  # bandwidth, Hz
+        self.R_BIN = self.c/(2*self.B)  # range precision, m
+        self.R_MAX = self.R_BIN*self.NUM_RANGE_BINS  # m
+        # R_MAX = c*fs/(2*k) # formula sustituyendo las expresiones anteriores
+        self.R_MAX_UNAMBIGUOUS = 0.9*self.R_MAX
+
+        # ------------------------------
+        # DOPPLER FFT PARAMETERS CALCULATION
+
+        self.NUM_DOPPLER_BINS = self.CHIRP_LOOPS
+
+        self.DOPPLER_BIN = self.lmbda / \
+            (2*self.CHIRP_LOOPS*self.Tchirp*self.TX_ANTENNAS)  # m/s
+        self.DOPPLER_MAX = self.DOPPLER_BIN*self.CHIRP_LOOPS  # m/s
+
+        # ------------------------------
+        # AZIMUTH FFT PARAMETERS CALCULATION
+
+        self.NUM_AZIM_BINS = 2*self.RX_ANTENNAS
+
+        self.AZIM_MAX = 90  # degrees
+        self.AZIM_BIN = self.AZIM_MAX/self.NUM_AZIM_BINS  # degrees
+
+        # ------------------------------
+        # ELEVATION FFT PARAMETERS CALCULATION
+
+        self.NUM_ELEV_BINS = self.RX_ANTENNAS
+
+    def set_record_mode(self):
+        self.MODE = self.RECORD_MODE
+        self.CONFIG = self.parse_config_file()
+        self.parse_config()
+
+    def set_playback_mode(self, playback_config):
+        self.MODE = self.PLAYBACK_MODE
+        self.CONFIG = playback_config
+        self.parse_config()
+
+    def parse_config_file(self):
+        d = {}
+
+        # Read file and update dict
+        with open(self.CONFIG_FILE, 'r') as f:
+            for i in range(40):
+                line = f.readline()
+                if not (line.startswith('-') or line.startswith('\n')):
+                    elems = line[:-1].split(' = ')
+                    param = elems[0]
+
+                    if param == 'FREQ_SLOPE':
+                        d.update({elems[0]: float(elems[1].split(' -')[0])})
+                    elif param != 'NUM_TX' and param != 'END_CHIRP_TX':
+                        d.update({elems[0]: int(elems[1].split(' -')[0])})
+
+        # Compute remaining parameters
+        d['NUM_TX'] = d['TX0_EN'] + d['TX1_EN'] + d['TX2_EN']
+        d['END_CHIRP_TX'] = d['NUM_TX'] - 1
+
+        return d
+
+    def printSummary(self):
+        print("Minimum Frame Periodicity:", self.MIN_PERIODICITY, "ms")
+        print("Chirps Per Frame:", self.CHIRPS_PER_FRAME)
+
+        print("Num Range Bins:", self.NUM_RANGE_BINS)
+        print("Range Resolution:", self.R_BIN, "m")
+        print("Max Unambiguous Range:", self.R_MAX, "m")
+
+        print("Num Doppler Bins:", self.NUM_DOPPLER_BINS)
+        print("Doppler Resolution:", self.DOPPLER_BIN, "m/s")
+        print("Max Doppler:", self.DOPPLER_MAX, "m/s")
 
 
-config = parse_config()
+PARAMS = __PARAMS_CLASS()
 
-# ------------------------------
-# Params from config file
-
-TX_ANTENNAS = config['NUM_TX']
-RX_ANTENNAS = config['NUM_RX']
-
-c = 3e8  # m/s
-fc = config['START_FREQ']*1e9  # chirp start frequency, Hz
-Tc = config['IDLE_TIME']*1e-6  # s
-Tr = config['RAMP_END_TIME']*1e-6  # s
-ADC_START_TIME = config['ADC_START_TIME']*1e-6  # s
-k = config['FREQ_SLOPE']*1e6/1e-6  # Hz/s
-ADC_SAMPLES = config['ADC_SAMPLES']
-FS = config['SAMPLE_RATE']  # ksps
-RX_GAIN = config['RX_GAIN']  # dB
-
-CHIRP_LOOPS = config['CHIRP_LOOPS']
-Tframe = config['PERIODICITY']  # ms
-
-fs = FS*1e3  # Hz
-lmbda = c/fc  # wavelength, m
-CHIRPS_PER_FRAME = CHIRP_LOOPS*TX_ANTENNAS
-
-# ------------------------------
-# RANGE FFT PARAMETERS CALCULATION
-
-# Para calcular B usamos el tiempo total de sampleo
-Ts = ADC_SAMPLES/fs  # sampling time, s
-B = k*Ts  # bandwidth, Hz
-R_BIN = c/(2*B)  # range precision, m
-R_MAX = R_BIN*ADC_SAMPLES  # m
-# R_MAX = c*fs/(2*k) # formula sustituyendo las expresiones anteriores
-R_MAX_UNAMBIGUOUS = 0.9*R_MAX
-
-# ------------------------------
-# DOPPLER FFT PARAMETERS CALCULATION
-
-# DOPPLER_MAX = lmbda/(4*Tc)  # m/s
+"""
+>> > print("Minimum Frame Periodicity:", MIN_PERIODICITY)
+Minimum Frame Periodicity: 63.744
+>> > print("Chirps Per Frame:", CHIRPS_PER_FRAME)
+Chirps Per Frame: 384
+>> > print("Num Doppler Bins:", NUM_DOPPLER_BINS)
+Num Doppler Bins: 128.0
+>> > print("Num Range Bins:", NUM_RANGE_BINS)
+Num Range Bins: 128
+>> > print("Range Resolution:", RANGE_RESOLUTION)
+Range Resolution: 0.19542975785471284
+>> > print("Max Unambiguous Range:", MAX_RANGE)
+Max Unambiguous Range: 22.513508104862918
+>> > print("Doppler Resolution:", DOPPLER_RESOLUTION)
+Doppler Resolution: 0.03170657467532467
+>> > print("Max Doppler:", MAX_DOPPLER)
+Max Doppler: 2.029220779220779
+>> > import params
+>> > params.PARAMS.DOPPLER_BIN
+0.1520862713068182
+>> > params.PARAMS.DOPPLER_MAX
+19.46704272727273
+>> > params.PARAMS.R_BIN
+0.19529455824536388
+"""

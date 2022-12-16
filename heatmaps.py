@@ -1,44 +1,88 @@
-import params
+"""
+
+HEATMAPS GENERATION
+===================
+
+Included functions:
+    - Range Heatmap
+    - Doppler-Range Heatmap
+    - Azimuth-Range Heatmap
+
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from dca1000 import DCA1000
+
+from params import PARAMS
+from fourier import rangeFFT, dopplerFFT, azimuthFFT
 
 
-def plotRangeHeatmap(signal):
-    '''
-    Plot range-doppler heatmap of one TX-RX pair
-    '''
-
+def generateRangeHeatmap(raw_data):
     # Average antennas
-    # avg = np.mean(signal, axis=1)
-    avg = signal[:, 0, :]
+    avg = np.mean(raw_data, axis=1)
 
-    matrix = np.zeros_like(avg, dtype=complex)
+    matrix = np.zeros((avg.shape[0], avg.shape[1]//2), dtype=complex)
 
     # Do FFT along each chirp's samples (range)
     # Shift zero freq.
     for i in range(avg.shape[0]):
-        matrix[i, :] = np.fft.fftshift(np.fft.fft(avg[i]))
+        matrix[i, :], bins = rangeFFT(avg[i])
 
-    # Find vertical and horizontal bins
+    # Find vertical bins
     chirps = np.arange(avg.shape[0])
-    bins = np.fft.fftfreq(avg.shape[1])
 
-    # Shift bins
-    bins = np.fft.fftshift(bins)
+    return bins, chirps, matrix
 
-    # Rearrange data
-    # n = bins.size//2
-    # beg = bins[:n]
-    # end = bins[n:]
-    # bins = np.concatenate([end, beg])*params.R_MAX
 
-    # mbeg = matrix[:, :n]
-    # mend = matrix[:, n:]
-    # matrix = np.concatenate([mend, mbeg], axis=1)
+def generateDopplerRangeHeatmap(raw_data):
+    # Average antennas
+    avg = np.mean(raw_data, axis=1)
+
+    matrix = np.zeros((avg.shape[0], avg.shape[1]//2), dtype=complex)
+
+    # Do FFT along each chirp's samples (range)
+    for i in range(avg.shape[0]):
+        matrix[i, :], range_bins = rangeFFT(avg[i])
+
+    # Do FFT along chirps (doppler)
+    for i in range(avg.shape[1]//2):
+        matrix[:, i], doppler_bins = dopplerFFT(matrix[:, i])
+
+    return range_bins, doppler_bins, matrix
+
+
+def generateAzimuthRangeHeatmap(raw_data):
+    # TX emissions are in the order TX1->TX3->TX2, and TX1,TX3 are
+    # in the same horizontal line. Thus, these are used for azimuth.
+    # Then for each chirp, the first 8 VX antennas are for azimuth
+
+    avg = np.mean(raw_data[:, :8, :], axis=0)
+
+    matrix = np.zeros((avg.shape[0], avg.shape[1]//2), dtype=complex)
+
+    # Do FFT along each chirp's samples (range)
+    for i in range(avg.shape[0]):
+        matrix[i, :], range_bins = rangeFFT(avg[i])
+
+    # Do FFT along antennas (azimuth)
+    for i in range(avg.shape[1]//2):
+        matrix[:, i], azimuth_bins = azimuthFFT(matrix[:, i])
+
+    return range_bins, azimuth_bins, matrix
+
+
+def plotRangeHeatmap(signal):
+    '''
+    Plot range heatmap
+    '''
+
+    bins, chirps, matrix = generateRangeHeatmap(signal)
 
     fig, ax = plt.subplots()
 
-    c = ax.pcolormesh(bins, chirps, np.log2(np.abs(matrix)))
+    c = ax.pcolormesh(bins, chirps, np.abs(matrix))
     fig.colorbar(c, ax=ax)
     ax.set_title('Range Heatmap')
     ax.set_xlabel('Range (m)')
@@ -51,27 +95,17 @@ def plotRangeHeatmap(signal):
 
 def plotDopplerRangeHeatmap(raw_data):
     '''
-    Plot range-doppler heatmap of one TX-RX pair
+    Plot Doppler-Range heatmap
     '''
-    matrix = np.zeros_like(raw_data, dtype=complex)
-
-    # Do FFT along each chirp's samples (range)
-    for i in range(raw_data.shape[0]):
-        matrix[i, :] = np.fft.fft(raw_data[i])
-
-    # Do FFT along chirps (doppler)
-    for i in range(raw_data.shape[1]):
-        matrix[:, i] = np.fft.fft(matrix[:, i])
+    range_bins, doppler_bins, matrix = generateDopplerRangeHeatmap(raw_data)
 
     fig, ax = plt.subplots()
-    im = ax.imshow(np.log2(np.abs(matrix)))
-    cbar = ax.figure.colorbar(im,
-                              ax=ax,
-                              shrink=0.5)
-    ax.set_frame_on(False)  # remove all spines
+
+    c = ax.pcolormesh(range_bins, doppler_bins, np.abs(matrix))
+    fig.colorbar(c, ax=ax)
     ax.set_title('Doppler-Range Heatmap')
-    ax.set_xlabel('Range bins')
-    ax.set_ylabel('Doppler bins')
+    ax.set_xlabel('Range (m)')
+    ax.set_ylabel('Doppler (m/s)')
 
     plt.show()
 
@@ -80,36 +114,18 @@ def plotDopplerRangeHeatmap(raw_data):
 
 def plotAzimuthRangeHeatmap(raw_data):
     '''
-    Plot azimuth-doppler heatmap of one chirp
-    TODO: find which antennas are for azimuth and elevation
-          using all for now...
+    Plot Azimuth-Range heatmap
     '''
 
-    # Another way to plot heatmaps
-    # rangegrid = np.arange(raw_data.shape[1])
-    # azimuthgrid = np.arange(raw_data.shape[0])
-    # ax.pcolormesh(rangegrid, azimuthgrid, np.log2(np.abs(matrix)))
+    range_bins, azimuth_bins, matrix = generateAzimuthRangeHeatmap(raw_data)
 
-    matrix = np.zeros_like(raw_data, dtype=complex)
+    fig, ax = plt.subplots()
 
-    # Do FFT along each chirp's samples (range)
-    for i in range(raw_data.shape[0]):
-        matrix[i, :] = np.fft.fft(raw_data[i])
-
-    # Do FFT along antennas (azimuth)
-    for i in range(raw_data.shape[1]):
-        matrix[:, i] = np.fft.fft(matrix[:, i])
-
-    fig, ax = plt.subplots(figsize=(6, 4))
-    im = ax.imshow(np.log2(np.abs(matrix)),
-                   aspect='auto')  # , interpolation='none')
-    cbar = ax.figure.colorbar(im,
-                              ax=ax,
-                              shrink=0.5)
-    ax.set_frame_on(False)  # remove all spines
+    c = ax.pcolormesh(range_bins, azimuth_bins, np.abs(matrix))
+    fig.colorbar(c, ax=ax)
     ax.set_title('Azimuth-Range Heatmap')
-    ax.set_xlabel('Range bins')
-    ax.set_ylabel('Azimuth bins')
+    ax.set_xlabel('Range (m)')
+    ax.set_ylabel('Azimuth (°)')
 
     plt.show()
 
