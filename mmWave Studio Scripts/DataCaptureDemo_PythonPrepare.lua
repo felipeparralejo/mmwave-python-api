@@ -25,8 +25,8 @@ SAMPLE_RATE = 5000 -- ksps
 RX_GAIN = 30 -- dB
 
 -- ChirpConfig
--- the setup is such that we receive Rx information in the order of TX0->TX2->TX1
--- this translates to getting all the azimuth information first (indices [0,7]) then getting any elevation information (indices [8,11])
+-- The setup is such that we receive Rx information in the order of TX0->TX2->TX1
+-- This translates to getting all the azimuth information first (indices [0,7]) then getting any elevation information (indices [8,11])
 -- TO CHANGE TX ANTENNA ORDER, ACTIVATE OR DEACTIVATE ANTENNA IN CHIRPCONFIG
 
 -- FrameConfig
@@ -229,7 +229,7 @@ end
 
 if (NUM_TX >= 1) then
     -- (CHIRP_START_IDX, CHIRP_END_IDX, PROFILE_ID, START_FREQ_VAR, FREQ_SLOP_VAR, IDLE_TIME_VAR, ADC_START_VAR, TX0_ENABLE, TX1_ENABLE, TX2_ENABLE)
-    -- TO CHANGE TX ANTENNA ORDER, ACTIVATE OR DEACTIVATE ANTENNA IN CHIRPCONFIG
+    -- TO CHANGE TX ANTENNA ORDER, ACTIVATE OR DEACTIVATE ANTENNA IN CHIRPCONFIG BELOW
     if (ar1.ChirpConfig(0, 0, 0, 0, 0, 0, 0, 1, 0, 0) == 0) then
         WriteToLog("ChirpConfig 0 Success\n", "green")
     else
@@ -245,7 +245,7 @@ if (NUM_TX >= 2) then
     end
 end
 
-if (NUM_TX >= 1) then
+if (NUM_TX >= 3) then
     if (ar1.ChirpConfig(2, 2, 0, 0, 0, 0, 0, 0, 1, 0) == 0) then
         WriteToLog("ChirpConfig 2 Success\n", "green")
     else
@@ -296,7 +296,7 @@ end
 
 -------- CALCULATED PARAMETERS --------
 -- MinPeriodicity (minimum time per frame to receive all chirps)
-MIN_PERIODICITY = (IDLE_TIME + ADC_START_TIME + RAMP_END_TIME)*CHIRP_LOOPS*NUM_TX/1000
+MIN_PERIODICITY = (IDLE_TIME + RAMP_END_TIME)*CHIRP_LOOPS*NUM_TX/1000 -- ms
 CHIRPS_PER_FRAME = (END_CHIRP_TX - START_CHIRP_TX + 1) * CHIRP_LOOPS
 NUM_DOPPLER_BINS = CHIRPS_PER_FRAME / NUM_TX
 NUM_RANGE_BINS = ADC_SAMPLES
@@ -323,7 +323,7 @@ RSTD.Sleep(1000)
 
 --Trigger frame
 ar1.StartFrame()
-RSTD.Sleep(5000)
+RSTD.Sleep(1000)
 WriteToLog("You can now start your Python script to acquire data .....!!!! \n", "green")
 
 --Post process the Capture RAW ADC data

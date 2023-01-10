@@ -11,6 +11,6 @@ from dca1000 import DCA1000
 
 dca = DCA1000()
 
-# liveRangePreview(dca)
-liveRangeHeatmapPreview(dca)
+liveRangePreview(dca)
+# liveRangeHeatmapPreview(dca)
 # liveAzimuthRangePreview(dca)

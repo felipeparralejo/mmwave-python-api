@@ -20,7 +20,7 @@ class __PARAMS_CLASS():
     PLAYBACK_MODE = 2
     CONFIG_FILE = 'C:\\ti\mmwave_studio_02_01_01_00\mmWaveStudio\Scripts\DataCaptureDemo_PythonPrepare.lua'
 
-    c = 3e8  # 299792458  # m/s
+    c = 299792458  # m/s
 
     def __init__(self):
         # Setting record mode by default
@@ -48,6 +48,7 @@ class __PARAMS_CLASS():
         self.fs = self.FS*1e3  # Hz
         self.lmbda = self.c/self.fc  # wavelength, m
         self.Tchirp = self.Tc + self.Tr  # total chirp duration, s
+        self.Tsep_chirp = self.Tchirp*self.TX_ANTENNAS  # time between same chirp, s
         self.MIN_PERIODICITY = self.Tchirp*self.CHIRP_LOOPS*self.TX_ANTENNAS*1000  # ms
         self.CHIRPS_PER_FRAME = self.CHIRP_LOOPS*self.TX_ANTENNAS
 
@@ -70,21 +71,18 @@ class __PARAMS_CLASS():
         self.NUM_DOPPLER_BINS = self.CHIRP_LOOPS
 
         self.DOPPLER_BIN = self.lmbda / \
-            (2*self.CHIRP_LOOPS*self.Tchirp*self.TX_ANTENNAS)  # m/s
-        self.DOPPLER_MAX = self.DOPPLER_BIN*self.CHIRP_LOOPS  # m/s
+            (2*self.CHIRP_LOOPS*self.Tsep_chirp)  # m/s
+        self.DOPPLER_MAX = self.lmbda/(4*self.Tsep_chirp)  # m/s
 
         # ------------------------------
         # AZIMUTH FFT PARAMETERS CALCULATION
 
-        self.NUM_AZIM_BINS = 2*self.RX_ANTENNAS
-
-        self.AZIM_MAX = 90  # degrees
-        self.AZIM_BIN = self.AZIM_MAX/self.NUM_AZIM_BINS  # degrees
+        self.NUM_AZIM_BINS = 64
 
         # ------------------------------
         # ELEVATION FFT PARAMETERS CALCULATION
 
-        self.NUM_ELEV_BINS = self.RX_ANTENNAS
+        self.NUM_ELEV_BINS = 32
 
     def set_record_mode(self):
         self.MODE = self.RECORD_MODE
@@ -124,16 +122,21 @@ class __PARAMS_CLASS():
 
         print("Num Range Bins:", self.NUM_RANGE_BINS)
         print("Range Resolution:", self.R_BIN, "m")
-        print("Max Unambiguous Range:", self.R_MAX, "m")
+        print("Max Unambiguous Range:", self.R_MAX_UNAMBIGUOUS, "m")
 
         print("Num Doppler Bins:", self.NUM_DOPPLER_BINS)
         print("Doppler Resolution:", self.DOPPLER_BIN, "m/s")
         print("Max Doppler:", self.DOPPLER_MAX, "m/s")
 
+        print("Num Azimuth Bins:", self.NUM_AZIM_BINS)
+
+        print("Num Elevation Bins:", self.NUM_ELEV_BINS)
+
 
 PARAMS = __PARAMS_CLASS()
 
 """
+Params from openradar examples for the same config
 >> > print("Minimum Frame Periodicity:", MIN_PERIODICITY)
 Minimum Frame Periodicity: 63.744
 >> > print("Chirps Per Frame:", CHIRPS_PER_FRAME)

@@ -7,7 +7,11 @@ Included functions:
     - Range FFT
     - Doppler FFT
     - Azimuth FFT
+    - Elevation FFT
     - Plot Range FFT
+    - Plot Doppler FFT
+    - Plot Azimuth FFT
+    - Plot Elevation FFT
     - Fink peaks in range signal
 
 """
@@ -43,13 +47,27 @@ def dopplerFFT(signal):
 
 
 def azimuthFFT(signal):
-    azimuth = np.fft.fft(signal)
+    azimuth = np.fft.fft(signal, n=PARAMS.NUM_AZIM_BINS)
     azimuth = np.fft.fftshift(azimuth)
 
-    bins = np.fft.fftfreq(signal.size)*PARAMS.AZIM_MAX
-    bins = np.fft.fftshift(bins)
+    bins = np.linspace(-PARAMS.NUM_AZIM_BINS//2,
+                       PARAMS.NUM_AZIM_BINS//2-1,
+                       PARAMS.NUM_AZIM_BINS)*2/PARAMS.NUM_AZIM_BINS
+    bins = np.arcsin(bins)*180/np.pi
 
     return azimuth, bins
+
+
+def elevationFFT(signal):
+    elevation = np.fft.fft(signal, n=PARAMS.NUM_ELEV_BINS)
+    elevation = np.fft.fftshift(elevation)
+
+    bins = np.linspace(-PARAMS.NUM_ELEV_BINS//2,
+                       PARAMS.NUM_ELEV_BINS//2-1,
+                       PARAMS.NUM_ELEV_BINS)*2/PARAMS.NUM_ELEV_BINS
+    bins = np.arcsin(bins)*180/np.pi
+
+    return elevation, bins
 
 
 def plotFFTrange(signal):
@@ -71,6 +89,42 @@ def plotFFTrange(signal):
     ax.set_xlabel('Range (m)')
     ax.set_ylabel('Reflected Power')
     ax.set_title('Interpreting a Single Chirp')
+    plt.show()
+
+
+def plotFFTdoppler(signal):
+    doppler, bins = dopplerFFT(signal)
+
+    fig, ax = plt.subplots()
+
+    ax.plot(bins, np.abs(doppler))
+    ax.set_xlabel('Doppler (m/s)')
+    ax.set_ylabel('Reflected Power')
+    ax.set_title('Interpreting a Single Sample')
+    plt.show()
+
+
+def plotFFTazimuth(signal):
+    azimuth, bins = azimuthFFT(signal)
+
+    fig, ax = plt.subplots()
+
+    ax.plot(bins, np.abs(azimuth))
+    ax.set_xlabel('Azimuth (°)')
+    ax.set_ylabel('Reflected Power')
+    ax.set_title('Interpreting a Chirps Avg.')
+    plt.show()
+
+
+def plotFFTelevation(signal):
+    elevation, bins = elevationFFT(signal)
+
+    fig, ax = plt.subplots()
+
+    ax.plot(bins, np.abs(elevation))
+    ax.set_xlabel('Elevation (°)')
+    ax.set_ylabel('Reflected Power')
+    ax.set_title('Interpreting a Chirps Avg.')
     plt.show()
 
 

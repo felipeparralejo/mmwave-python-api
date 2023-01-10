@@ -3,7 +3,7 @@
 # MODIFICATION OF THE adc.py FILE FROM LIBRARY openradar by Felipe Parralejo
 # under Apache License, Version 2.0.
 # Changes are needed to automatically read configuration parameters from mmwave
-# Studio lua script.
+# Studio lua script and convert frames from two's complement to int16 format.
 #
 # =============================================================================
 # Copyright 2019 The OpenRadar Authors. All Rights Reserved.
@@ -175,7 +175,8 @@ class DCA1000:
             timeout (float): Time to wait for packet before moving on
 
         Returns:
-            Full frame as array if successful, else None
+            Full frame as array if successful converted to int16 format
+            to recover signs from two's complement, else None
 
         """
         # Configure
@@ -199,7 +200,8 @@ class DCA1000:
 
             if byte_count % BYTES_IN_FRAME_CLIPPED == 0:
                 self.lost_packets = PACKETS_IN_FRAME_CLIPPED - packets_read
-                return ret_frame
+                # conversion from two's complement
+                return np.frombuffer(ret_frame, dtype=np.int16)
 
             curr_idx = ((packet_num - 1) % PACKETS_IN_FRAME_CLIPPED)
             try:
@@ -303,6 +305,7 @@ class DCA1000:
         # Separate IQ data
         ret[0::2] = raw_frame[0::4] + 1j * raw_frame[2::4]
         ret[1::2] = raw_frame[1::4] + 1j * raw_frame[3::4]
+        # ret = raw_frame[0::2] + 1j * raw_frame[1::2]
         return ret.reshape((num_chirps, num_rx, num_samples))
 
     @staticmethod

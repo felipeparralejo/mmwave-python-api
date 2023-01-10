@@ -20,6 +20,10 @@ from params import PARAMS
 from fourier import rangeFFT, findPeaks
 from heatmaps import generateRangeHeatmap, generateAzimuthRangeHeatmap
 
+Y_MAX = 4e4
+Y_PEAK_TH = 1e4
+V_MAX = 1e4
+
 
 def liveRangePreview(dca):
     '''
@@ -27,7 +31,7 @@ def liveRangePreview(dca):
     '''
     # Figure
     fig = plt.figure()
-    ax = plt.axes(xlim=(0, PARAMS.R_MAX/2), ylim=(0, 5e6))
+    ax = plt.axes(xlim=(0, PARAMS.R_MAX/2), ylim=(0, Y_MAX))
     line = ax.plot([], [], 'b-8')[0]
 
     ax.grid()
@@ -53,7 +57,7 @@ def liveRangePreview(dca):
         adc_data = DCA1000.separate_tx(adc_data, num_tx=PARAMS.TX_ANTENNAS)
         range, bins = rangeFFT(adc_data[0, 0])
 
-        peaks = findPeaks(range, th=3.0e6)
+        peaks = findPeaks(range, th=Y_PEAK_TH)
 
         line.set_xdata(bins)
         line.set_ydata(np.abs(range))
@@ -86,7 +90,7 @@ def liveRangeHeatmapPreview(dca):
     # Figure
     fig, ax = plt.subplots()
     cax = ax.pcolormesh(bins, chirps,
-                        np.abs(matrix), vmin=0, vmax=1e6)
+                        np.abs(matrix), vmin=0, vmax=V_MAX)
     fig.colorbar(cax, ax=ax)
 
     ax.grid()
@@ -118,7 +122,7 @@ def liveAzimuthRangePreview(dca):
     # Figure
     fig, ax = plt.subplots()
     cax = ax.pcolormesh(range_bins, azimuth_bins,
-                        np.abs(matrix), vmin=0, vmax=1e6)
+                        np.abs(matrix), vmin=0, vmax=V_MAX)
     fig.colorbar(cax, ax=ax)
 
     ax.grid()

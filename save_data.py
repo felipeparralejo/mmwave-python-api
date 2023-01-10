@@ -19,8 +19,8 @@ import pickle
 from dca1000 import DCA1000
 from params import PARAMS
 
-FRAMES = 10
-DESC = 'Moving object at aprox. 50cm'
+FRAMES = 100
+DESC = 'Signal test for frequency decomposition'
 
 dca = DCA1000()
 
