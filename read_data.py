@@ -14,6 +14,7 @@ from params import PARAMS
 import pickle
 import numpy as np
 import heatmaps
+from raw_signal import plot_signal
 from fourier import plotFFTrange, plotFFTazimuth, plotFFTelevation
 from dca1000 import DCA1000
 
@@ -29,7 +30,8 @@ adc_data = DCA1000.organize(
     adc_data, num_chirps=PARAMS.CHIRPS_PER_FRAME, num_rx=PARAMS.RX_ANTENNAS, num_samples=PARAMS.ADC_SAMPLES)
 adc_data = DCA1000.separate_tx(adc_data, num_tx=PARAMS.TX_ANTENNAS)
 
-# plotFFTrange(adc_data[0, 0])
+plot_signal(adc_data[0, 0])
+# plotFFTrange(adc_data[0, 0], 5000)
 # plotFFTazimuth(np.mean(adc_data[:, :8, 0], axis=0))
 # elev_data = np.concatenate([(np.mean(adc_data[:, :4, 0], axis=0) +
 #                              np.mean(adc_data[:, 4:8, 0], axis=0))/2, np.mean(adc_data[:, 8:, 0], axis=0)])

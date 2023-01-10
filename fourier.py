@@ -70,20 +70,24 @@ def elevationFFT(signal):
     return elevation, bins
 
 
-def plotFFTrange(signal):
+def plotFFTrange(signal, PEAK_TH=None):
     range, bins = rangeFFT(signal)
-    peaks = findPeaks(range, th=2.0e6)
 
     # Plot the magnitudes of the range bins
     fig, ax = plt.subplots()
 
-    for peak in peaks:
-        mag = np.abs([range[peak]])
-        bin = bins[peak]
-        ax.annotate(f'{bin:.2f}',
-                    xy=(bin, mag),
-                    xytext=(bin+0.2, mag),
-                    fontsize=10)
+    if PEAK_TH is not None:
+        peaks = findPeaks(range, th=PEAK_TH)
+
+        for peak in peaks:
+            mag = np.abs([range[peak]])
+            bin = bins[peak]
+            ax.annotate(f'{bin:.2f}',
+                        xy=(bin, mag),
+                        xytext=(bin+0.2, mag),
+                        fontsize=10)
+    else:
+        peaks = []
 
     ax.plot(bins, np.abs(range), '-8', markevery=peaks)
     ax.set_xlabel('Range (m)')
