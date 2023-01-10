@@ -96,19 +96,20 @@ class __PARAMS_CLASS():
 
     def parse_config_file(self):
         d = {}
-
         # Read file and update dict
         with open(self.CONFIG_FILE, 'r') as f:
             for i in range(40):
+                # print(d)
                 line = f.readline()
                 if not (line.startswith('-') or line.startswith('\n')):
                     elems = line[:-1].split(' = ')
                     param = elems[0]
 
-                    if param == 'FREQ_SLOPE':
+                    if param == 'FREQ_SLOPE' or param == 'RAMP_END_TIME':
                         d.update({elems[0]: float(elems[1].split(' -')[0])})
                     elif param != 'NUM_TX' and param != 'END_CHIRP_TX':
                         d.update({elems[0]: int(elems[1].split(' -')[0])})
+                        
 
         # Compute remaining parameters
         d['NUM_TX'] = d['TX0_EN'] + d['TX1_EN'] + d['TX2_EN']
