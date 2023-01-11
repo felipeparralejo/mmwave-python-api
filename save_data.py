@@ -20,7 +20,7 @@ from dca1000 import DCA1000
 from params import PARAMS
 
 FRAMES = 100
-DESC = 'Signal test for frequency decomposition'
+DESC = 'Person slowly walking in front of the radar'
 
 dca = DCA1000()
 

@@ -21,11 +21,10 @@ from fourier import rangeFFT, findPeaks
 from heatmaps import generateRangeHeatmap, generateAzimuthRangeHeatmap
 
 Y_MAX = 4e4
-Y_PEAK_TH = 1e4
 V_MAX = 1e4
 
 
-def liveRangePreview(dca):
+def liveRangePreview(dca, PEAK_TH=None):
     '''
     Live range FFT preview for first chirp and Tx-RX pair
     '''
@@ -57,20 +56,23 @@ def liveRangePreview(dca):
         adc_data = DCA1000.separate_tx(adc_data, num_tx=PARAMS.TX_ANTENNAS)
         range, bins = rangeFFT(adc_data[0, 0])
 
-        peaks = findPeaks(range, th=Y_PEAK_TH)
+        if PEAK_TH is not None:
+            peaks = findPeaks(range, th=Y_PEAK_TH)
+
+            for peak in peaks:
+                mag = np.abs([range[peak]])
+                bin = bins[peak]
+                ann = ax.annotate(f'{bin:.2f}',
+                                  xy=(bin, mag),
+                                  xytext=(bin+0.2, mag),
+                                  fontsize=10)
+                ann_list.append(ann)
+        else:
+            peaks = []
 
         line.set_xdata(bins)
         line.set_ydata(np.abs(range))
         line.set_markevery(peaks)
-
-        for peak in peaks:
-            mag = np.abs([range[peak]])
-            bin = bins[peak]
-            ann = ax.annotate(f'{bin:.2f}',
-                              xy=(bin, mag),
-                              xytext=(bin+0.2, mag),
-                              fontsize=10)
-            ann_list.append(ann)
 
         return line
 
