@@ -16,6 +16,7 @@ import numpy as np
 import heatmaps
 from raw_signal import plot_signal
 from fourier import plotFFTrange, plotFFTazimuth, plotFFTelevation
+from animated_plots import animateFFTRange
 from dca1000 import DCA1000
 
 data = pickle.load(open('data\openradar_11-01-23_PSWIFOTR.dat', 'rb'))
@@ -31,7 +32,7 @@ adc_data = DCA1000.organize(
 adc_data = DCA1000.separate_tx(adc_data, num_tx=PARAMS.TX_ANTENNAS)
 
 # plot_signal(adc_data[0, 0])
-plotFFTrange(adc_data[0, 0], PEAK_TH=5000)
+# plotFFTrange(adc_data[0, 0], PEAK_TH=20000)
 # plotFFTazimuth(np.mean(adc_data[:, :8, 0], axis=0))
 # elev_data = np.concatenate([(np.mean(adc_data[:, :4, 0], axis=0) +
 #                              np.mean(adc_data[:, 4:8, 0], axis=0))/2, np.mean(adc_data[:, 8:, 0], axis=0)])
@@ -40,3 +41,4 @@ plotFFTrange(adc_data[0, 0], PEAK_TH=5000)
 # matrix = heatmaps.plotDopplerRangeHeatmap(adc_data)
 # matrix = heatmaps.plotAzimuthRangeHeatmap(adc_data)
 # matrix = heatmaps.plotElevationRangeHeatmap(adc_data)
+animateFFTRange(frames)

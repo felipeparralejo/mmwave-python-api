@@ -1,3 +1,13 @@
+"""
+
+RAW SIGNAL UTILITIES
+====================
+
+Included functions:
+    - Plot raw signal
+
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 
