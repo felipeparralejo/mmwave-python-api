@@ -18,25 +18,25 @@ from raw_signal import plot_signal
 from fourier import plotFFTrange, plotFFTazimuth, plotFFTelevation
 from dca1000 import DCA1000
 
-data = pickle.load(open('data\openradar_11-01-23_PSWIFOTR.dat', 'rb'))
+data = pickle.load(open('data\openradar_11-01-23_S.dat', 'rb'))
 
 frames = data['data']
 config = data['config']
 
 PARAMS.set_playback_mode(config)
 
-adc_data = frames[50]
+adc_data = frames[10]
 adc_data = DCA1000.organize(
     adc_data, num_chirps=PARAMS.CHIRPS_PER_FRAME, num_rx=PARAMS.RX_ANTENNAS, num_samples=PARAMS.ADC_SAMPLES)
 adc_data = DCA1000.separate_tx(adc_data, num_tx=PARAMS.TX_ANTENNAS)
 
-# plot_signal(adc_data[0, 0])
+plot_signal(adc_data[0, 0])
 plotFFTrange(adc_data[0, 0], PEAK_TH=5000)
-# plotFFTazimuth(np.mean(adc_data[:, :8, 0], axis=0))
-# elev_data = np.concatenate([(np.mean(adc_data[:, :4, 0], axis=0) +
-#                              np.mean(adc_data[:, 4:8, 0], axis=0))/2, np.mean(adc_data[:, 8:, 0], axis=0)])
-# plotFFTelevation(elev_data)
-# matrix = heatmaps.plotRangeHeatmap(adc_data)
-# matrix = heatmaps.plotDopplerRangeHeatmap(adc_data)
-# matrix = heatmaps.plotAzimuthRangeHeatmap(adc_data)
-# matrix = heatmaps.plotElevationRangeHeatmap(adc_data)
+plotFFTazimuth(np.mean(adc_data[:, :8, 0], axis=0))
+elev_data = np.concatenate([(np.mean(adc_data[:, :4, 0], axis=0) +
+                             np.mean(adc_data[:, 4:8, 0], axis=0))/2, np.mean(adc_data[:, 8:, 0], axis=0)])
+plotFFTelevation(elev_data)
+matrix = heatmaps.plotRangeHeatmap(adc_data)
+matrix = heatmaps.plotDopplerRangeHeatmap(adc_data)
+matrix = heatmaps.plotAzimuthRangeHeatmap(adc_data)
+matrix = heatmaps.plotElevationRangeHeatmap(adc_data)
