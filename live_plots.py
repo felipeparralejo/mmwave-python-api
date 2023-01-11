@@ -57,7 +57,7 @@ def liveRangePreview(dca, PEAK_TH=None):
         range, bins = rangeFFT(adc_data[0, 0])
 
         if PEAK_TH is not None:
-            peaks = findPeaks(range, th=Y_PEAK_TH)
+            peaks = findPeaks(range, th=PEAK_TH)
 
             for peak in peaks:
                 mag = np.abs([range[peak]])
