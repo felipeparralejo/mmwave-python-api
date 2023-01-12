@@ -147,6 +147,7 @@ def plotAzimuthRangeHeatmap(raw_data):
     '''
 
     range_bins, azimuth_bins, matrix = generateAzimuthRangeHeatmap(raw_data)
+    matrix[::,0:8] = 0
 
     fig, ax = plt.subplots()
 
@@ -168,6 +169,7 @@ def plotElevationRangeHeatmap(raw_data):
 
     range_bins, elevation_bins, matrix = generateElevationRangeHeatmap(
         raw_data)
+    matrix[::,0:8] = 0
 
     fig, ax = plt.subplots()
 
