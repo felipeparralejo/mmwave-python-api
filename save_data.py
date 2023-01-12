@@ -19,8 +19,8 @@ import pickle
 from dca1000 import DCA1000
 from params import PARAMS
 
-FRAMES = 50
-DESC = 'static_person_1m_my_room'
+FRAMES = 20
+DESC = 'static corner reflector QM office'
 
 dca = DCA1000()
 
