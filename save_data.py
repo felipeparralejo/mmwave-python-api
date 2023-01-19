@@ -19,8 +19,13 @@ import pickle
 from dca1000 import DCA1000
 from params import PARAMS
 
+<<<<<<< HEAD
 FRAMES = 20
 DESC = 'static corner reflector QM office'
+=======
+FRAMES = 100
+DESC = 'Person walking configured with params from demo visualizer for comparison'
+>>>>>>> 6c1dc784e6391bfdfb36cb4821696cc70180c1e9
 
 dca = DCA1000()
 
