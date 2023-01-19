@@ -58,20 +58,12 @@ class __PARAMS_CLASS():
 
         self.NUM_RANGE_BINS = self.ADC_SAMPLES
 
-<<<<<<< HEAD
         # Para calcular B usamos el tiempo total de sampleo
         self.k_temp = 48*self.k* 2**26 * 1e3/((3.6*1e9)*900)
         self.Ts = self.ADC_SAMPLES/self.fs  # sampling time, s
         self.B1 = self.k_temp*self.Ts  # bandwidth, Hz
         self.B2 = self.k*self.Tr
         self.R_BIN = self.c/(2*self.B2)  # range precision, m
-=======
-        # TODO: Averiguar cual usar!!! Para calcular B usamos el tiempo de rampa y no el total de sampleo (segun mmwave studio)
-        self.Ts = self.ADC_SAMPLES/self.fs  # sampling time, s
-        # bandwidth, Hz
-        self.B = self.k*self.Ts
-        self.R_BIN = self.c/(2*self.B)  # range precision, m
->>>>>>> 6c1dc784e6391bfdfb36cb4821696cc70180c1e9
         self.R_MAX = self.R_BIN*self.NUM_RANGE_BINS  # m
         self.R_MAX_UNAMBIGUOUS = 0.9*self.R_MAX
 
