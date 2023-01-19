@@ -30,19 +30,19 @@ class __PARAMS_CLASS():
         # ------------------------------
         # Params from config file
 
-        self.TX_ANTENNAS = self.CONFIG['NUM_TX']
-        self.RX_ANTENNAS = self.CONFIG['NUM_RX']
+        self.TX_ANTENNAS = int(self.CONFIG['NUM_TX'])
+        self.RX_ANTENNAS = int(self.CONFIG['NUM_RX'])
 
         self.fc = self.CONFIG['START_FREQ']*1e9  # chirp start frequency, Hz
         self.Tc = self.CONFIG['IDLE_TIME']*1e-6  # s
         self.Tr = self.CONFIG['RAMP_END_TIME']*1e-6  # s
         self.ADC_START_TIME = self.CONFIG['ADC_START_TIME']*1e-6  # s
         self.k = self.CONFIG['FREQ_SLOPE']*1e6/1e-6  # Hz/s
-        self.ADC_SAMPLES = self.CONFIG['ADC_SAMPLES']
+        self.ADC_SAMPLES = int(self.CONFIG['ADC_SAMPLES'])
         self.FS = self.CONFIG['SAMPLE_RATE']  # ksps
         self.RX_GAIN = self.CONFIG['RX_GAIN']  # dB
 
-        self.CHIRP_LOOPS = self.CONFIG['CHIRP_LOOPS']
+        self.CHIRP_LOOPS = int(self.CONFIG['CHIRP_LOOPS'])
         self.Tperiodicity = self.CONFIG['PERIODICITY']  # ms
 
         self.fs = self.FS*1e3  # Hz
@@ -57,12 +57,12 @@ class __PARAMS_CLASS():
 
         self.NUM_RANGE_BINS = self.ADC_SAMPLES
 
-        # Para calcular B usamos el tiempo total de sampleo
+        # TODO: Averiguar cual usar!!! Para calcular B usamos el tiempo de rampa y no el total de sampleo (segun mmwave studio)
         self.Ts = self.ADC_SAMPLES/self.fs  # sampling time, s
-        self.B = self.k*self.Ts  # bandwidth, Hz
+        # bandwidth, Hz
+        self.B = self.k*self.Ts
         self.R_BIN = self.c/(2*self.B)  # range precision, m
         self.R_MAX = self.R_BIN*self.NUM_RANGE_BINS  # m
-        # R_MAX = c*fs/(2*k) # formula sustituyendo las expresiones anteriores
         self.R_MAX_UNAMBIGUOUS = 0.9*self.R_MAX
 
         # ------------------------------
@@ -99,16 +99,14 @@ class __PARAMS_CLASS():
 
         # Read file and update dict
         with open(self.CONFIG_FILE, 'r') as f:
-            for i in range(40):
+            for _ in range(39):
                 line = f.readline()
                 if not (line.startswith('-') or line.startswith('\n')):
                     elems = line[:-1].split(' = ')
                     param = elems[0]
 
-                    if param == 'FREQ_SLOPE':
+                    if param != 'NUM_TX' and param != 'END_CHIRP_TX':
                         d.update({elems[0]: float(elems[1].split(' -')[0])})
-                    elif param != 'NUM_TX' and param != 'END_CHIRP_TX':
-                        d.update({elems[0]: int(elems[1].split(' -')[0])})
 
         # Compute remaining parameters
         d['NUM_TX'] = d['TX0_EN'] + d['TX1_EN'] + d['TX2_EN']
@@ -153,11 +151,4 @@ Max Unambiguous Range: 22.513508104862918
 Doppler Resolution: 0.03170657467532467
 >> > print("Max Doppler:", MAX_DOPPLER)
 Max Doppler: 2.029220779220779
->> > import params
->> > params.PARAMS.DOPPLER_BIN
-0.1520862713068182
->> > params.PARAMS.DOPPLER_MAX
-19.46704272727273
->> > params.PARAMS.R_BIN
-0.19529455824536388
 """

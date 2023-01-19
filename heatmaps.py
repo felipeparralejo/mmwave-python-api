@@ -56,11 +56,11 @@ def generateDopplerRangeHeatmap(raw_data):
 
 
 def generateAzimuthRangeHeatmap(raw_data):
-    # TX emissions are in the order TX1->TX3->TX2, and TX1,TX3 are
+    # TX emissions are in the order TX1->TX2->TX3, and TX1,TX3 are
     # in the same horizontal line. Thus, these are used for azimuth.
-    # Then for each chirp, the first 8 VX antennas are for azimuth
+    # Then for each chirp, the first and last 4 VX antennas are for azimuth
 
-    avg = np.mean(raw_data[:, :8, :], axis=0)
+    avg = np.mean(raw_data[:, [0, 1, 2, 3, 8, 9, 10, 11], :], axis=0)
 
     matrix = np.zeros((PARAMS.NUM_AZIM_BINS, avg.shape[1]//2), dtype=complex)
 
@@ -72,24 +72,50 @@ def generateAzimuthRangeHeatmap(raw_data):
     for i in range(avg.shape[1]//2):
         matrix[:, i], azimuth_bins = azimuthFFT(matrix[:, i])
 
-    # Angular resolution is not at > 75 degrees, we remove the first
+    # Angular resolution is not good at > 75 degrees, we remove the first
     # bin to remove -90 degrees and keep the rest
     return range_bins, azimuth_bins[1:], matrix[1:]
 
 
 def generateElevationRangeHeatmap(raw_data):
-    # TX emissions are in the order TX1->TX3->TX2. For elevation,
-    # chirps from TX1 and TX3 can be averaged and concatenated with
-    # chirp from TX2.
-    # Then for each chirp, the first 8 VX antennas are for azimuth
-    # and the mean of all these with the remainder 9, 10 11 and 12 VX
-    # antennas are for elevation
+    # TX emissions are in the order TX1->TX2->TX3. For elevation,
+    # VXs (3,5), (4,6), (9,7), (10,8) are used in pairs
 
-    avg = np.mean(raw_data, axis=0)
+    matrix_avg = np.zeros(
+        (PARAMS.NUM_ELEV_BINS, raw_data.shape[2]//2), dtype=complex)
 
-    avg = np.concatenate([(avg[:4] + avg[4:8])/2, avg[8:]])
+    for idx in [[2, 4], [3, 5], [8, 6], [9, 7]]:
 
-    matrix = np.zeros((PARAMS.NUM_ELEV_BINS, avg.shape[1]//2), dtype=complex)
+        avg = np.mean(raw_data[:, idx, :], axis=0)
+
+        matrix = np.zeros(
+            (PARAMS.NUM_ELEV_BINS, avg.shape[1]//2), dtype=complex)
+
+        # Do FFT along each chirp's samples (range)
+        for i in range(avg.shape[0]):
+            matrix[i, :], range_bins = rangeFFT(avg[i])
+
+        # Do FFT along antennas (elevation)
+        for i in range(avg.shape[1]//2):
+            matrix[:, i], elevation_bins = elevationFFT(matrix[:, i])
+
+        matrix_avg += matrix
+
+    return range_bins, elevation_bins[1:], matrix_avg[1:]/4
+
+
+def generateElevationRangeHeatmapAvgSignals(raw_data):
+    # TX emissions are in the order TX1->TX2->TX3. For elevation,
+    # VXs (3,5), (4,6), (9,7), (10,8) are used in pairs
+
+    avg = np.zeros(
+        (2, raw_data.shape[2]), dtype=complex)
+
+    for idx in [[2, 4], [3, 5], [8, 6], [9, 7]]:
+        avg += np.mean(raw_data[:, idx, :], axis=0)
+
+    matrix = np.zeros(
+        (PARAMS.NUM_ELEV_BINS, avg.shape[1]//2), dtype=complex)
 
     # Do FFT along each chirp's samples (range)
     for i in range(avg.shape[0]):

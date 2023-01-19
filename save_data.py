@@ -20,7 +20,7 @@ from dca1000 import DCA1000
 from params import PARAMS
 
 FRAMES = 100
-DESC = 'Person slowly walking in front of the radar'
+DESC = 'Person walking configured with params from demo visualizer for comparison'
 
 dca = DCA1000()
 

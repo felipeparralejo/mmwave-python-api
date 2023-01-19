@@ -22,16 +22,19 @@ import matplotlib.pyplot as plt
 from params import PARAMS
 
 
-def rangeFFT(signal):
+def rangeFFT(signal, remove_beg=True):
     # Los primeros 5-8 frames ponerlos a 0, o quitar el DC que es la componente de freq=0 (media de valores de amplitud)
     range = np.fft.fft(signal)
     range = np.fft.fftshift(range)[signal.size//2:]
 
-    # Remove first bin
-    range[0] = 0
-
     bins = np.fft.fftfreq(signal.size)*PARAMS.R_MAX
     bins = np.fft.fftshift(bins)[signal.size//2:]
+
+    range = 20*np.log10(np.abs(range))  # relative power in dB
+
+    if remove_beg:
+        # Remove first 8 bins to remove near field interference
+        range[0:8] = 0
 
     return range, bins
 
@@ -137,7 +140,7 @@ def findPeaks(rang, th):
     peaks = []
 
     for i in range(len(rang)):
-        mag = np.abs(rang[i])
+        mag = rang[i]
         if mag > th:
             peaks.append(i)
 

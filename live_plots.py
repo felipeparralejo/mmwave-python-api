@@ -20,7 +20,7 @@ from params import PARAMS
 from fourier import rangeFFT, findPeaks
 from heatmaps import generateRangeHeatmap, generateAzimuthRangeHeatmap
 
-Y_MAX = 4e4
+Y_MAX = 120
 V_MAX = 1e4
 
 
@@ -54,13 +54,13 @@ def liveRangePreview(dca, PEAK_TH=None):
         adc_data = DCA1000.organize(
             adc_data, num_chirps=PARAMS.CHIRPS_PER_FRAME, num_rx=PARAMS.RX_ANTENNAS, num_samples=PARAMS.ADC_SAMPLES)
         adc_data = DCA1000.separate_tx(adc_data, num_tx=PARAMS.TX_ANTENNAS)
-        range, bins = rangeFFT(adc_data[0, 0])
+        range, bins = rangeFFT(adc_data[0, 0], remove_beg=False)
 
         if PEAK_TH is not None:
             peaks = findPeaks(range, th=PEAK_TH)
 
             for peak in peaks:
-                mag = np.abs([range[peak]])
+                mag = [range[peak]]
                 bin = bins[peak]
                 ann = ax.annotate(f'{bin:.2f}',
                                   xy=(bin, mag),
@@ -71,7 +71,7 @@ def liveRangePreview(dca, PEAK_TH=None):
             peaks = []
 
         line.set_xdata(bins)
-        line.set_ydata(np.abs(range))
+        line.set_ydata(range)
         line.set_markevery(peaks)
 
         return line
@@ -114,7 +114,7 @@ def liveRangeHeatmapPreview(dca):
     plt.show()
 
 
-def liveAzimuthRangePreview(dca):
+def liveAzimuthRangeHeatmapPreview(dca):
     # Create fake radar input data to get range and azimuth bins
     avg = np.zeros((PARAMS.CHIRP_LOOPS, PARAMS.RX_ANTENNAS*PARAMS.TX_ANTENNAS,
                    PARAMS.ADC_SAMPLES), dtype=complex)
