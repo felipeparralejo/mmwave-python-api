@@ -29,10 +29,14 @@ An example script is provided to save data frames and the parameters used to con
 
 ## - Reading data
 
-A reading script is provided to reshape the radar data cube as a NumPy array with the shape `(numChirpsPerFrame, numVxAntennas, numADCSamples)` where each chirp contains the following `numVxAntennas` arrays:
+An example of use is provided to instruct practitioners. A `RadarData` class is defined to transform byte data read from the device to radar data in two formats:
+
+-- The property `separated_vx_data` contains the radar data reshaped as a NumPy array of shape `(numChirpLoops, numVxAntennas, numADCSamples)` where each chirp contains the following `numVxAntennas` arrays:
 
 ```
 [ [TX1-RX1], [TX1-RX2], [TX1-RX3], [TX1-RX4], [TX3-RX1], [TX3-RX2], ... , [TX2-RX4] ]
 ```
 
 Each `[TXa-RXb]` array is the signal emitted by TX antenna `a` received on RX antenna `b` with a total of `numADCSamples` samples.
+
+-- The property `separated_data` contains the radar data reshaped as a NumPy array of shape `(numTxAntennas, numRxAntennas, numChirpLoops, numADCSamples)` to ease the access to specific TX-RX antenna pairs. Thus, all TX1-RX3 chirps can be accessed through `separated_data[0,2]`.

@@ -319,7 +319,7 @@ class DCA1000:
             axis (int): Axis in which the data is interleaved.
 
         Returns:
-            ndarray: Separated received data in the
+            ndarray: Separated received data of shape (num_chirps, num_vx, num_samples)
 
         """
         # Reorder the axes
@@ -329,6 +329,6 @@ class DCA1000:
         signal = signal.transpose(reordering)
 
         out = np.concatenate([signal[i::num_tx, ...]
-                              for i in range(num_tx)], axis=vx_axis)
+                             for i in range(num_tx)], axis=vx_axis)
 
         return out.transpose(reordering)
