@@ -91,7 +91,8 @@ def dopplerFFT(signal):
 def matlabMultip(f,t):
     """
     create an n x m array from 2 vectors of size n and m.
-    Resulting rows are the multiplication of each element of the first vector for all the elements of the second vector
+    Resulting rows are the multiplication of each element of the first vector for 
+    all the elements of the second vector
     f=np.array([2,4])
     t=np.array([1,2,3,4,5])
     [[ 2  4  6  8 10]

@@ -46,15 +46,15 @@ v_array = rdata.separated_vx_data
 # 1D RANGE FFT and radar cube
 [RC, rFFT, rBins] = rangeFFT(v_array[1,:,:],rdata.device)
 # The range profile can be extracted from this as
-plt.plot(rBins[8:],np.mean(abs(rFFT),axis=0)[8:])
-plt.show()
+# plt.plot(rBins[8:],np.mean(abs(rFFT),axis=0)[8:])
+# plt.show()
 # 2D AZIMUTH & ELEVATION FFTs
 [aFFT, eFFT, aBins, eBins] = angleFFT(RC)
-heatmaps.plotAzimuthRangeHeatmap(rBins[:60],aBins[2:],aFFT[2:,:60])
+# heatmaps.plotAzimuthRangeHeatmap(rBins[:60],aBins[2:],aFFT[2:,:60])
 
 # TODO Cartesian HEATMAP
-# heatmaps.plotXYheatmap(rBins,aBins,aFFT)
+heatmaps.plotXYheatmap(rBins[:60],aBins[2:],aFFT[2:,:60])
 
-heatmaps.plotElevationRangeHeatmap(rBins,eBins,eFFT)
+# heatmaps.plotElevationRangeHeatmap(rBins,eBins,eFFT)
 
 

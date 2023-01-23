@@ -14,7 +14,6 @@ Included functions:
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from mpl_toolkits import mplot3d
 from dca1000 import DCA1000
 from fourier import matlabMultip
 
@@ -97,7 +96,7 @@ def plotElevationRangeHeatmap(range_bins, elevation_bins, matrix):
 
 def plotXYheatmap(range_bins, azimuth_bins, matrix):
 
-    fig = plt.figure(figsize = (12,10))
+    fig = plt.figure(figsize = (8,8))
     ax = plt.axes(projection='3d')
 
     X = matlabMultip(range_bins,np.sin(azimuth_bins*np.pi/180))
@@ -107,6 +106,7 @@ def plotXYheatmap(range_bins, azimuth_bins, matrix):
     plt.tight_layout()
     ax.plot_surface(X,Y,matrix.T,cmap = plt.cm.cividis)
     ax.set_title('Surface Heatmap')
+    # ax.view_init(90,90)
 
     plt.show()
     
