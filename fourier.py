@@ -6,37 +6,75 @@ FOURIER OPERATIONS
 Included functions:
     - Range FFT
     - Doppler FFT
-    - Azimuth FFT
-    - Elevation FFT
-    - Plot Range FFT
-    - Plot Doppler FFT
-    - Plot Azimuth FFT
-    - Plot Elevation FFT
-    - Fink peaks in range signal
+    - Angle FFT
 
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
-
 from params import PARAMS
 
+def rangeFFT(signal,device):
+    '''
+    Signal must come in the way "rdata.separated_data"
+    Device is the radar name
 
-def rangeFFT(signal, remove_beg=True):
-    # Los primeros 5-8 frames ponerlos a 0, o quitar el DC que es la componente de freq=0 (media de valores de amplitud)
-    range = np.fft.fft(signal)
-    range = np.fft.fftshift(range)[signal.size//2:]
+    '''
 
-    bins = np.fft.fftfreq(signal.size)*PARAMS.R_MAX
-    bins = np.fft.fftshift(bins)[signal.size//2:]
 
-    range = 20*np.log10(np.abs(range))  # relative power in dB
+    # 1D-range FFT
+    rFFT = np.fft.fft(signal,axis=1)
+    # Removing near-field effect
+    rFFT[:,0:8] = 0
+    # Range bins
+    nBins = np.size(signal,1)
 
-    if remove_beg:
-        # Remove first 8 bins to remove near field interference
-        range[0:8] = 0
+    # Radar Cube for different devices
+    if device == 'IWR6843ISK-ODS':
+        radarCube = np.zeros((4,4,nBins),dtype=complex)
+        for n in range(nBins):
+            radarCube[:,:,n] = [[rFFT[0,n], rFFT[3,n], rFFT[4,n], rFFT[7,n]],
+                                    [rFFT[1,n], rFFT[2,n], rFFT[5,n], rFFT[6,n]],
+                                     [0.+0.j,         0.+0.j,         rFFT[8,n], rFFT[11,n]],
+                                     [0.+0.j,         0.+0.j,         rFFT[9,n], rFFT[10,n]]]
+    elif device == 'IWR1843ISK':
+        radarCube = np.zeros((2,8,nBins),dtype=complex )
+        for n in range(nBins):
+            radarCube = [[0,         0,         rFFT[4,n], rFFT[5,n], rFFT[6,n], rFFT[7,n], 0,         0          ],
+                         [rFFT[0,n], rFFT[1,n], rFFT[2,n], rFFT[3,n], rFFT[8,n], rFFT[9,n], rFFT[10,n], rFFT[11,n]]]
 
-    return range, bins
+    rBins = np.linspace(0,PARAMS.R_MAX,PARAMS.NUM_RANGE_BINS)
+
+    return radarCube, rFFT, rBins
+
+def angleFFT(signal):
+    '''
+    Signal is "rFFT" coming from "radarCube"
+
+    '''
+    # Azimuth and elevation bins
+    azBins = PARAMS.NUM_AZIM_BINS
+    elBins = PARAMS.NUM_ELEV_BINS
+
+    # Angle FFTs
+    angFFT = np.fft.fft2(signal,(elBins,azBins),axes=(0,1))
+    angFFT = np.fft.fftshift(angFFT,axes=0)
+    angFFT = np.fft.fftshift(angFFT,axes=1)
+    # For azimuth and elevation, the average is taken. It can also be replaced
+    # with "max" or any other convenient function
+    aFFT = np.mean(abs(angFFT),axis=0)
+    eFFT = np.mean(abs(angFFT),axis=1)
+
+    # Finally, the bins are extracted from the configuration
+    # Azimuth bins
+    aBins = np.linspace(-azBins/2, azBins/2-1, azBins) * 2/azBins
+    aBins = np.arcsin(aBins)*180/np.pi
+    # Elevation bins
+    eBins = np.linspace(-elBins/2, elBins/2-1,elBins) * 2/elBins
+    eBins = np.arcsin(eBins)*180/np.pi
+
+    return aFFT, eFFT, aBins, eBins
+
+
 
 
 def dopplerFFT(signal):
@@ -49,99 +87,98 @@ def dopplerFFT(signal):
     return doppler, bins
 
 
-def azimuthFFT(signal):
-    azimuth = np.fft.fft(signal, n=PARAMS.NUM_AZIM_BINS)
-    azimuth = np.fft.fftshift(azimuth)
 
-    bins = np.linspace(-PARAMS.NUM_AZIM_BINS//2,
-                       PARAMS.NUM_AZIM_BINS//2-1,
-                       PARAMS.NUM_AZIM_BINS)*2/PARAMS.NUM_AZIM_BINS
-    bins = np.arcsin(bins)*180/np.pi
+def matlabMultip(f,t):
+    """
+    create an n x m array from 2 vectors of size n and m.
+    Resulting rows are the multiplication of each element of the first vector for all the elements of the second vector
+    f=np.array([2,4])
+    t=np.array([1,2,3,4,5])
+    [[ 2  4  6  8 10]
+     [ 4  8 12 16 20]]
 
-    return azimuth, bins
-
-
-def elevationFFT(signal):
-    elevation = np.fft.fft(signal, n=PARAMS.NUM_ELEV_BINS)
-    elevation = np.fft.fftshift(elevation)
-
-    bins = np.linspace(-PARAMS.NUM_ELEV_BINS//2,
-                       PARAMS.NUM_ELEV_BINS//2-1,
-                       PARAMS.NUM_ELEV_BINS)*2/PARAMS.NUM_ELEV_BINS
-    bins = np.arcsin(bins)*180/np.pi
-
-    return elevation, bins
-
-
-def plotFFTrange(signal, PEAK_TH=None):
-    range, bins = rangeFFT(signal)
-
-    # Plot the magnitudes of the range bins
-    fig, ax = plt.subplots()
-
-    if PEAK_TH is not None:
-        peaks = findPeaks(range, th=PEAK_TH)
-
-        for peak in peaks:
-            mag = np.abs([range[peak]])
-            bin = bins[peak]
-            ax.annotate(f'{bin:.2f}',
-                        xy=(bin, mag),
-                        xytext=(bin+0.2, mag),
-                        fontsize=10)
+    """
+    if t.size==t.shape[0]:
+        k=f[0]*t
+        for i in f[1:]:
+            j=i*t
+            k=np.vstack((k,j))
     else:
-        peaks = []
+        raise Exception('arrays should 1D arrays')
 
-    ax.plot(bins, np.abs(range), '-8', markevery=peaks)
-    ax.set_xlabel('Range (m)')
-    ax.set_ylabel('Reflected Power')
-    ax.set_title('Interpreting a Single Chirp')
-    plt.show()
+    return k
 
 
-def plotFFTdoppler(signal):
-    doppler, bins = dopplerFFT(signal)
+# def plotFFTrange(signal, PEAK_TH=None):
 
-    fig, ax = plt.subplots()
+#     rProf, rbins = rangeProfile(signal)
 
-    ax.plot(bins, np.abs(doppler))
-    ax.set_xlabel('Doppler (m/s)')
-    ax.set_ylabel('Reflected Power')
-    ax.set_title('Interpreting a Single Sample')
-    plt.show()
+#     # Plot the magnitudes of the range bins
+#     fig, ax = plt.subplots()
 
+#     if PEAK_TH is not None:
+#         peaks = findPeaks(rProf, th=PEAK_TH)
 
-def plotFFTazimuth(signal):
-    azimuth, bins = azimuthFFT(signal)
+#         for peak in peaks:
+#             mag = np.abs([rProf[peak]])
+#             bin = rbins[peak]
+#             ax.annotate(f'{bin:.2f}',
+#                         xy=(bin, mag),
+#                         xytext=(bin+0.2, mag),
+#                         fontsize=10)
+#     else:
+#         peaks = []
 
-    fig, ax = plt.subplots()
-
-    ax.plot(bins, np.abs(azimuth))
-    ax.set_xlabel('Azimuth (°)')
-    ax.set_ylabel('Reflected Power')
-    ax.set_title('Interpreting a Chirps Avg.')
-    plt.show()
-
-
-def plotFFTelevation(signal):
-    elevation, bins = elevationFFT(signal)
-
-    fig, ax = plt.subplots()
-
-    ax.plot(bins, np.abs(elevation))
-    ax.set_xlabel('Elevation (°)')
-    ax.set_ylabel('Reflected Power')
-    ax.set_title('Interpreting a Chirps Avg.')
-    plt.show()
+#     ax.plot(rbins, np.abs(rProf), '-8', markevery=peaks)
+#     ax.set_xlabel('Range (m)')
+#     ax.set_ylabel('Reflected Power')
+#     ax.set_title('Interpreting a Single Chirp')
+#     plt.show()
 
 
-def findPeaks(rang, th):
-    # Find peaks bigger than th
-    peaks = []
+# def plotFFTdoppler(signal):
+#     doppler, bins = dopplerFFT(signal)
 
-    for i in range(len(rang)):
-        mag = rang[i]
-        if mag > th:
-            peaks.append(i)
+#     fig, ax = plt.subplots()
 
-    return peaks
+#     ax.plot(bins, np.abs(doppler))
+#     ax.set_xlabel('Doppler (m/s)')
+#     ax.set_ylabel('Reflected Power')
+#     ax.set_title('Interpreting a Single Sample')
+#     plt.show()
+
+
+# def plotFFTazimuth(signal):
+#     azimuth, bins = azimuthFFT(signal)
+
+#     fig, ax = plt.subplots()
+
+#     ax.plot(bins, np.abs(azimuth))
+#     ax.set_xlabel('Azimuth (°)')
+#     ax.set_ylabel('Reflected Power')
+#     ax.set_title('Interpreting a Chirps Avg.')
+#     plt.show()
+
+
+# def plotFFTelevation(signal):
+#     elevation, bins = elevationFFT(signal)
+
+#     fig, ax = plt.subplots()
+
+#     ax.plot(bins, np.abs(elevation))
+#     ax.set_xlabel('Elevation (°)')
+#     ax.set_ylabel('Reflected Power')
+#     ax.set_title('Interpreting a Chirps Avg.')
+#     plt.show()
+
+
+# def findPeaks(rang, th):
+#     # Find peaks bigger than th
+#     peaks = []
+
+#     for i in range(len(rang)):
+#         mag = rang[i]
+#         if mag > th:
+#             peaks.append(i)
+
+#     return peaks
