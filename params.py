@@ -101,27 +101,14 @@ class __PARAMS_CLASS():
         d = {}
         # Read file and update dict
         with open(self.CONFIG_FILE, 'r') as f:
-<<<<<<< HEAD
-            for i in range(40):
-                # print(d)
-=======
             for _ in range(39):
->>>>>>> 6c1dc784e6391bfdfb36cb4821696cc70180c1e9
                 line = f.readline()
                 if not (line.startswith('-') or line.startswith('\n')):
                     elems = line[:-1].split(' = ')
                     param = elems[0]
 
-<<<<<<< HEAD
-                    if param == 'FREQ_SLOPE' or param == 'RAMP_END_TIME':
-                        d.update({elems[0]: float(elems[1].split(' -')[0])})
-                    elif param != 'NUM_TX' and param != 'END_CHIRP_TX':
-                        d.update({elems[0]: int(elems[1].split(' -')[0])})
-                        
-=======
                     if param != 'NUM_TX' and param != 'END_CHIRP_TX':
                         d.update({elems[0]: float(elems[1].split(' -')[0])})
->>>>>>> 6c1dc784e6391bfdfb36cb4821696cc70180c1e9
 
         # Compute remaining parameters
         d['NUM_TX'] = d['TX0_EN'] + d['TX1_EN'] + d['TX2_EN']
@@ -131,10 +118,10 @@ class __PARAMS_CLASS():
 
     def printSummary(self):
 
-        print("Slope 1", self.k)
-        print("Slope 2", self.k_temp)
-        print("Bandwith 1",self.B1/1e6, "GHz")
-        print("Bandwith 2",self.B2/1e6, "GHz")
+        print("Slope", self.k)
+        # print("Slope 2", self.k_temp)
+        # print("Bandwith 1",self.B1/1e6, "GHz")
+        print("Bandwith",self.B2/1e6, "GHz")
 
         print("Minimum Frame Periodicity:", self.MIN_PERIODICITY, "ms")
         print("Chirps Per Frame:", self.CHIRPS_PER_FRAME)
