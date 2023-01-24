@@ -2,7 +2,7 @@
 --Place this in C:\ti\mmwave_studio_XX_XX_XX_XX\mmWaveStudio\Scripts
 
 -- CONNECTION
-COM_PORT = 4
+COM_PORT = 3
 
 -------- RADAR PARAMETERS --------
 

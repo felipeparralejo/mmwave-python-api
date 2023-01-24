@@ -20,7 +20,7 @@ from dca1000 import DCA1000
 from params import PARAMS
 
 FRAMES = 20
-DESC = 'static corner reflector QM office'
+DESC = 'Queen Mary University London -- corner reflector-r1.3-A0 3'
 
 dca = DCA1000()
 

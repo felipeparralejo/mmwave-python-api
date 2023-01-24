@@ -99,14 +99,15 @@ def plotXYheatmap(range_bins, azimuth_bins, matrix):
     fig = plt.figure(figsize = (8,8))
     ax = plt.axes(projection='3d')
 
-    X = matlabMultip(range_bins,np.sin(azimuth_bins*np.pi/180))
-    Y = matlabMultip(range_bins,np.cos(azimuth_bins*np.pi/180))
+    X = matlabMultip(range_bins.T,np.sin(azimuth_bins*np.pi/180))
+    Y = matlabMultip(range_bins.T,np.cos(azimuth_bins*np.pi/180))
 
     # ax = fig.add_subplot(1, 1, 1, projection='3d')
     plt.tight_layout()
-    ax.plot_surface(X,Y,matrix.T,cmap = plt.cm.cividis)
-    ax.set_title('Surface Heatmap')
+    ax.plot_surface(X,Y,matrix.T,cmap = plt.cm.jet,antialiased=True)
+    ax.set_title('XY Heatmap')
     # ax.view_init(90,90)
 
     plt.show()
+    
     
