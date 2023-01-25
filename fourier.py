@@ -39,7 +39,7 @@ def rangeFFT(signal,device):
     elif device == 'IWR1843ISK':
         radarCube = np.zeros((2,8,nBins),dtype=complex )
         for n in range(nBins):
-            radarCube = [[0,         0,         rFFT[4,n], rFFT[5,n], rFFT[6,n], rFFT[7,n], 0,         0          ],
+            radarCube[:,:,n] = [[0,         0,         rFFT[4,n], rFFT[5,n], rFFT[6,n], rFFT[7,n], 0,         0          ],
                          [rFFT[0,n], rFFT[1,n], rFFT[2,n], rFFT[3,n], rFFT[8,n], rFFT[9,n], rFFT[10,n], rFFT[11,n]]]
 
     rBins = np.linspace(0,PARAMS.R_MAX,PARAMS.NUM_RANGE_BINS)
