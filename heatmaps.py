@@ -40,7 +40,7 @@ def plotRangeHeatmap(signal):
     # return matrix
 
 
-def plotDopplerRangeHeatmap(raw_data):
+def plotDopplerRangeHeatmap(range_bins, doppler_bins, matrix):
     '''
     Plot Doppler-Range heatmap
     '''
@@ -48,7 +48,7 @@ def plotDopplerRangeHeatmap(raw_data):
 
     fig, ax = plt.subplots()
 
-    c = ax.pcolormesh(range_bins, doppler_bins, np.abs(matrix))
+    c = ax.pcolormesh(range_bins, doppler_bins, matrix)
     fig.colorbar(c, ax=ax)
     ax.set_title('Doppler-Range Heatmap')
     ax.set_xlabel('Range (m)')

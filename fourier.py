@@ -48,7 +48,7 @@ def rangeFFT(signal,device):
 
 def angleFFT(signal):
     '''
-    Signal is "rFFT" coming from "radarCube"
+    Signal is "rFFT" coming from "rangFFT"
 
     '''
     # Azimuth and elevation bins
@@ -78,13 +78,20 @@ def angleFFT(signal):
 
 
 def dopplerFFT(signal):
-    doppler = np.fft.fft(signal)
-    doppler = np.fft.fftshift(doppler)
 
-    bins = np.fft.fftfreq(signal.size)*PARAMS.DOPPLER_MAX
-    bins = np.fft.fftshift(bins)
+    # Virtual antenna to do the calculations:
+    signal = signal[:,1,:]
+    # 2D-range/Doppler FFT
+    dFFT = np.fft.fft2(signal,axes=(0,1))
+    dFFT = np.fft.fftshift(dFFT,axes=0)
+    # Removing near-field effect
+    dFFT[:,0:12] = 0
 
-    return doppler, bins
+    # Bins for range and velocity
+    rBins = np.linspace(0,PARAMS.R_MAX,PARAMS.NUM_RANGE_BINS)
+    dBins = np.linspace(-PARAMS.DOPPLER_MAX,PARAMS.DOPPLER_MAX,PARAMS.NUM_DOPPLER_BINS)
+
+    return dFFT, dBins, rBins
 
 
 
