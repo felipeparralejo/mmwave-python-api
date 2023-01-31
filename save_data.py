@@ -19,8 +19,8 @@ import pickle
 from dca1000 import DCA1000
 from params import PARAMS
 
-FRAMES = 100
-DESC = 'Person walking configured with params from demo visualizer for comparison'
+FRAMES = 40
+DESC = 'Queen Mary University London -- moving coner reflector'
 
 dca = DCA1000()
 

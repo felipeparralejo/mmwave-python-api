@@ -25,6 +25,7 @@ class __PARAMS_CLASS():
     def __init__(self):
         # Setting record mode by default
         self.set_record_mode()
+        self.printSummary()
 
     def parse_config(self):
         # ------------------------------
@@ -57,11 +58,12 @@ class __PARAMS_CLASS():
 
         self.NUM_RANGE_BINS = self.ADC_SAMPLES
 
-        # TODO: Averiguar cual usar!!! Para calcular B usamos el tiempo de rampa y no el total de sampleo (segun mmwave studio)
+        # Para calcular B usamos el tiempo total de sampleo
+        self.k_temp = 48*self.k* 2**26 * 1e3/((3.6*1e9)*900)
         self.Ts = self.ADC_SAMPLES/self.fs  # sampling time, s
-        # bandwidth, Hz
-        self.B = self.k*self.Ts
-        self.R_BIN = self.c/(2*self.B)  # range precision, m
+        self.B1 = self.k_temp*self.Ts  # bandwidth, Hz
+        self.B2 = self.k*self.Tr
+        self.R_BIN = self.c/(2*self.B2)  # range precision, m
         self.R_MAX = self.R_BIN*self.NUM_RANGE_BINS  # m
         self.R_MAX_UNAMBIGUOUS = 0.9*self.R_MAX
 
@@ -84,6 +86,7 @@ class __PARAMS_CLASS():
 
         self.NUM_ELEV_BINS = 32
 
+
     def set_record_mode(self):
         self.MODE = self.RECORD_MODE
         self.CONFIG = self.parse_config_file()
@@ -96,7 +99,6 @@ class __PARAMS_CLASS():
 
     def parse_config_file(self):
         d = {}
-
         # Read file and update dict
         with open(self.CONFIG_FILE, 'r') as f:
             for _ in range(39):
@@ -115,6 +117,12 @@ class __PARAMS_CLASS():
         return d
 
     def printSummary(self):
+
+        print("Slope", self.k)
+        # print("Slope 2", self.k_temp)
+        # print("Bandwith 1",self.B1/1e6, "GHz")
+        print("Bandwith",self.B2/1e6, "GHz")
+
         print("Minimum Frame Periodicity:", self.MIN_PERIODICITY, "ms")
         print("Chirps Per Frame:", self.CHIRPS_PER_FRAME)
 
@@ -132,6 +140,8 @@ class __PARAMS_CLASS():
 
 
 PARAMS = __PARAMS_CLASS()
+
+
 
 """
 Params from openradar examples for the same config

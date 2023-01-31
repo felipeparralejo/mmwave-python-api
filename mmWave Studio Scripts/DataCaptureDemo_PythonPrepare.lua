@@ -2,7 +2,7 @@
 --Place this in C:\ti\mmwave_studio_XX_XX_XX_XX\mmWaveStudio\Scripts
 
 -- CONNECTION
-COM_PORT = 9
+COM_PORT = 3
 
 -------- RADAR PARAMETERS --------
 
@@ -15,13 +15,13 @@ NUM_TX = TX0_EN + TX1_EN + TX2_EN
 NUM_RX = 4
 
 -- ProfileConfig
-START_FREQ = 77 -- GHz
-IDLE_TIME = 100 -- us
-RAMP_END_TIME = 60 -- us
-ADC_START_TIME = 6 --us
-FREQ_SLOPE = 29.982 -- MHz/us
-ADC_SAMPLES = 128
-SAMPLE_RATE = 5000 -- ksps
+START_FREQ = 60 -- GHz
+IDLE_TIME = 7 -- us
+RAMP_END_TIME = 24 -- us
+ADC_START_TIME = 3 --us
+FREQ_SLOPE = 166 -- MHz/us
+ADC_SAMPLES = 256
+SAMPLE_RATE = 12500 -- ksps
 RX_GAIN = 30 -- dB
 
 -- ChirpConfig
