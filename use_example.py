@@ -20,7 +20,7 @@ import heatmaps
 # from animated_plots import animateFFTRange, animateRangeHeatmap, animateDopplerRangeHeatmap, animateAzimuthRangeHeatmap
 from fourier import rangeFFT, angleFFT, dopplerFFT
 from params import PARAMS
-from raw_signal import RadarData, plot_signal
+from raw_signal import RadarData
 import matplotlib.pyplot as plt
 
 # Load data from file
@@ -44,13 +44,13 @@ rdata.raw_data = adc_data
 # Access data separated by Rx and Tx antennas
 v_array = rdata.separated_vx_data
 
-## 1D RANGE FFT and radar cube
-[RC, rFFT, rBins] = rangeFFT(v_array[1,:,:],rdata.device)
+# 1D RANGE FFT and radar cube
+[RC, rFFT, rBins] = rangeFFT(v_array[1, :, :], rdata.device)
 # The range profile can be extracted from this as
 # plt.plot(rBins[8:],np.mean(abs(rFFT),axis=0)[8:])
 # plt.show()
 
-## 2D AZIMUTH & ELEVATION FFTs
+# 2D AZIMUTH & ELEVATION FFTs
 [aFFT, eFFT, aBins, eBins] = angleFFT(RC)
 
 # Polar heatmaps
@@ -59,12 +59,7 @@ v_array = rdata.separated_vx_data
 # Cartesian HEATMAP
 # heatmaps.plotXYheatmap(rBins[:60],aBins[1:],aFFT[1:,:60])
 
-## Doppler FFT
+# Doppler FFT
 [dFFT, dBins, rBins] = dopplerFFT(v_array)
 
-heatmaps.plotDopplerRangeHeatmap(rBins[:60],dBins,abs(dFFT[:,:60]))
-
-
-
-
-
+heatmaps.plotDopplerRangeHeatmap(rBins[:60], dBins, abs(dFFT[:, :60]))
