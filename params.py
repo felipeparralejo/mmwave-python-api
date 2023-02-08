@@ -18,7 +18,7 @@ class __PARAMS_CLASS():
 
     RECORD_MODE = 1
     PLAYBACK_MODE = 2
-    CONFIG_FILE = 'C:\\ti\mmwave_studio_02_01_01_00\mmWaveStudio\Scripts\DataCaptureDemo_PythonPrepare.lua'
+    CONFIG_FILE = '/Users/air-josete/Documents/GitHub/mmwaveFelipe/mmWave Studio Scripts/DataCaptureDemo_PythonPrepare.lua'
 
     c = 299792458  # m/s
 
@@ -59,7 +59,7 @@ class __PARAMS_CLASS():
         self.NUM_RANGE_BINS = self.ADC_SAMPLES
 
         # Para calcular B usamos el tiempo total de sampleo
-        self.k_temp = 48*self.k* 2**26 * 1e3/((3.6*1e9)*900)
+        self.k_temp = 48*self.k * 2**26 * 1e3/((3.6*1e9)*900)
         self.Ts = self.ADC_SAMPLES/self.fs  # sampling time, s
         self.B1 = self.k_temp*self.Ts  # bandwidth, Hz
         self.B2 = self.k*self.Tr
@@ -85,7 +85,6 @@ class __PARAMS_CLASS():
         # ELEVATION FFT PARAMETERS CALCULATION
 
         self.NUM_ELEV_BINS = 32
-
 
     def set_record_mode(self):
         self.MODE = self.RECORD_MODE
@@ -121,7 +120,7 @@ class __PARAMS_CLASS():
         print("Slope", self.k)
         # print("Slope 2", self.k_temp)
         # print("Bandwith 1",self.B1/1e6, "GHz")
-        print("Bandwith",self.B2/1e6, "GHz")
+        print("Bandwith", self.B2/1e6, "GHz")
 
         print("Minimum Frame Periodicity:", self.MIN_PERIODICITY, "ms")
         print("Chirps Per Frame:", self.CHIRPS_PER_FRAME)
@@ -140,7 +139,6 @@ class __PARAMS_CLASS():
 
 
 PARAMS = __PARAMS_CLASS()
-
 
 
 """

@@ -62,7 +62,7 @@ class RadarData:
         self.loops = loops
         self.samples = samples
 
-        self.printDataConfig()
+        # self.printDataConfig()
 
     @property
     def raw_data(self):
