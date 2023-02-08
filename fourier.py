@@ -13,38 +13,40 @@ Included functions:
 import numpy as np
 from params import PARAMS
 
-def rangeFFT(signal,device):
+
+def rangeFFT(signal, device):
     '''
     Signal must come in the way "rdata.separated_data"
     Device is the radar name
 
     '''
 
-
     # 1D-range FFT
-    rFFT = np.fft.fft(signal,axis=1)
+    rFFT = np.fft.fft(signal, axis=1)
     # Removing near-field effect
-    rFFT[:,0:8] = 0
+    rFFT[:, 0:8] = 0
     # Range bins
-    nBins = np.size(signal,1)
+    nBins = np.size(signal, 1)
 
     # Radar Cube for different devices
     if device == 'IWR6843ISK-ODS':
-        radarCube = np.zeros((4,4,nBins),dtype=complex)
+        radarCube = np.zeros((4, 4, nBins), dtype=complex)
         for n in range(nBins):
-            radarCube[:,:,n] = [[rFFT[0,n], rFFT[3,n], rFFT[4,n], rFFT[7,n]],
-                                    [rFFT[1,n], rFFT[2,n], rFFT[5,n], rFFT[6,n]],
-                                     [0.+0.j,         0.+0.j,         rFFT[8,n], rFFT[11,n]],
-                                     [0.+0.j,         0.+0.j,         rFFT[9,n], rFFT[10,n]]]
+            radarCube[:, :, n] = [[rFFT[0, n], rFFT[3, n], rFFT[4, n], rFFT[7, n]],
+                                  [rFFT[1, n], rFFT[2, n], rFFT[5, n], rFFT[6, n]],
+                                  [0.+0.j,         0.+0.j,
+                                      rFFT[8, n], rFFT[11, n]],
+                                  [0.+0.j,         0.+0.j,         rFFT[9, n], rFFT[10, n]]]
     elif device == 'IWR1843ISK':
-        radarCube = np.zeros((2,8,nBins),dtype=complex )
+        radarCube = np.zeros((2, 8, nBins), dtype=complex)
         for n in range(nBins):
-            radarCube[:,:,n] = [[0,         0,         rFFT[4,n], rFFT[5,n], rFFT[6,n], rFFT[7,n], 0,         0          ],
-                         [rFFT[0,n], rFFT[1,n], rFFT[2,n], rFFT[3,n], rFFT[8,n], rFFT[9,n], rFFT[10,n], rFFT[11,n]]]
+            radarCube[:, :, n] = [[0,         0,         rFFT[4, n], rFFT[5, n], rFFT[6, n], rFFT[7, n], 0,         0],
+                                  [rFFT[0, n], rFFT[1, n], rFFT[2, n], rFFT[3, n], rFFT[8, n], rFFT[9, n], rFFT[10, n], rFFT[11, n]]]
 
-    rBins = np.linspace(0,PARAMS.R_MAX,PARAMS.NUM_RANGE_BINS)
+    rBins = np.linspace(0, PARAMS.R_MAX, PARAMS.NUM_RANGE_BINS)
 
     return radarCube, rFFT, rBins
+
 
 def angleFFT(signal):
     '''
@@ -56,46 +58,52 @@ def angleFFT(signal):
     elBins = PARAMS.NUM_ELEV_BINS
 
     # Angle FFTs
-    angFFT = np.fft.fft2(signal,(elBins,azBins),axes=(0,1))
-    angFFT = np.fft.fftshift(angFFT,axes=0)
-    angFFT = np.fft.fftshift(angFFT,axes=1)
+    angFFT = np.fft.fft2(signal, (elBins, azBins), axes=(0, 1))
+    angFFT = np.fft.fftshift(angFFT, axes=0)
+    angFFT = np.fft.fftshift(angFFT, axes=1)
     # For azimuth and elevation, the average is taken. It can also be replaced
     # with "max" or any other convenient function
-    aFFT = np.mean(abs(angFFT),axis=0)
-    eFFT = np.mean(abs(angFFT),axis=1)
+    aFFT = np.mean(abs(angFFT), axis=0)
+    eFFT = np.mean(abs(angFFT), axis=1)
 
     # Finally, the bins are extracted from the configuration
     # Azimuth bins
     aBins = np.linspace(-azBins/2, azBins/2-1, azBins) * 2/azBins
     aBins = np.arcsin(aBins)*180/np.pi
     # Elevation bins
-    eBins = np.linspace(-elBins/2, elBins/2-1,elBins) * 2/elBins
+    eBins = np.linspace(-elBins/2, elBins/2-1, elBins) * 2/elBins
     eBins = np.arcsin(eBins)*180/np.pi
 
     return aFFT, eFFT, aBins, eBins
 
 
-
-
 def dopplerFFT(signal):
 
     # Virtual antenna to do the calculations:
-    signal = signal[:,1,:]
     # 2D-range/Doppler FFT
-    dFFT = np.fft.fft2(signal,axes=(0,1))
-    dFFT = np.fft.fftshift(dFFT,axes=0)
+    vB = np.shape(signal)[0]*4
+    rB = np.shape(signal)[2]*4
+    nAnt = np.shape(signal)[1]
+    dFFT = np.zeros(
+        (vB, nAnt, rB), dtype=complex)
+    for n in range(np.shape(dFFT)[1]):
+        dFFT[:, n, :] = np.fft.fft2(signal[:, n, :], (vB, rB), axes=(0, 1))
+
+    dFFT = np.mean(abs(dFFT), axis=1)
+
+    dFFT = np.fft.fftshift(dFFT, axes=0)
     # Removing near-field effect
-    dFFT[:,0:12] = 0
+    dFFT[:, 0:8*4] = 0
 
     # Bins for range and velocity
-    rBins = np.linspace(0,PARAMS.R_MAX,PARAMS.NUM_RANGE_BINS)
-    dBins = np.linspace(-PARAMS.DOPPLER_MAX,PARAMS.DOPPLER_MAX,PARAMS.NUM_DOPPLER_BINS)
+    rBins = np.linspace(0, PARAMS.R_MAX, num=np.shape(dFFT)[1])
+    dBins = np.linspace(-PARAMS.DOPPLER_MAX,
+                        PARAMS.DOPPLER_MAX, num=np.shape(dFFT)[0])
 
     return dFFT, dBins, rBins
 
 
-
-def matlabMultip(f,t):
+def matlabMultip(f, t):
     """
     create an n x m array from 2 vectors of size n and m.
     Resulting rows are the multiplication of each element of the first vector for 
@@ -106,11 +114,11 @@ def matlabMultip(f,t):
      [ 4  8 12 16 20]]
 
     """
-    if t.size==t.shape[0]:
-        k=f[0]*t
+    if t.size == t.shape[0]:
+        k = f[0]*t
         for i in f[1:]:
-            j=i*t
-            k=np.vstack((k,j))
+            j = i*t
+            k = np.vstack((k, j))
     else:
         raise Exception('arrays should 1D arrays')
 
