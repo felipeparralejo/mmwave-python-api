@@ -25,6 +25,7 @@ def rangeFFT(signal, device):
     rFFT = np.fft.fft(signal, axis=1)
     # Removing near-field effect
     rFFT[:, 0:8] = 0
+    # rFFT = 10*np.log10(rFFT)
     # Range bins
     nBins = np.size(signal, 1)
 
@@ -50,7 +51,7 @@ def rangeFFT(signal, device):
 
 def angleFFT(signal):
     '''
-    Signal is "rFFT" coming from "rangFFT"
+    Signal is "rFFT" coming from "rangeFFT"
 
     '''
     # Azimuth and elevation bins
@@ -94,6 +95,7 @@ def dopplerFFT(signal):
     dFFT = np.fft.fftshift(dFFT, axes=0)
     # Removing near-field effect
     dFFT[:, 0:8*4] = 0
+    # dFFT = 10*np.log10(dFFT)
 
     # Bins for range and velocity
     rBins = np.linspace(0, PARAMS.R_MAX, num=np.shape(dFFT)[1])
