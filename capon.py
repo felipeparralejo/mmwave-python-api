@@ -106,7 +106,7 @@ def steervec(antLay, lam, theta, phi=0):
         A = np.zeros((numAnt, numTheta), dtype=complex)
         for n in range(numAnt):
             for m in range(numTheta):
-                A[n, m] = np.exp(-1j * 2*np.pi/lam * antLay[n] *
+                A[n, m] = np.exp(-1j * 2*np.pi/lam * antLay[1, n] *
                                  np.sin(np.deg2rad(theta[m])))
 
     else:
