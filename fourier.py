@@ -38,7 +38,7 @@ def rangeFFT(signal, device):
                                   [0.+0.j,         0.+0.j,
                                       rFFT[8, n], rFFT[11, n]],
                                   [0.+0.j,         0.+0.j,         rFFT[9, n], rFFT[10, n]]]
-    elif device == 'IWR1843ISK':
+    elif device == 'IWR1843':
         radarCube = np.zeros((2, 8, nBins), dtype=complex)
         for n in range(nBins):
             radarCube[:, :, n] = [[0,         0,         rFFT[4, n], rFFT[5, n], rFFT[6, n], rFFT[7, n], 0,         0],
