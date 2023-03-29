@@ -25,7 +25,7 @@ class __PARAMS_CLASS():
     def __init__(self):
         # Setting record mode by default
         self.set_record_mode()
-        self.printSummary()
+        # self.printSummary()
 
     def parse_config(self):
         # ------------------------------
